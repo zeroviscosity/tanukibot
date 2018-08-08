@@ -1,0 +1,11 @@
+certifi==2018.4.16
+chardet==3.0.4
+idna==2.7
+markovify==0.7.1
+nltk==3.3
+requests==2.19.1
+six==1.11.0
+slackclient==1.2.1
+Unidecode==1.0.22
+urllib3==1.23
+websocket-client==0.48.0
