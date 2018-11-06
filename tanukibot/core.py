@@ -1,13 +1,16 @@
 import datetime as dt
 import markovify
 import nltk
+from nltk.corpus import stopwords
 import os
 import re
 import random
 import time
 from .scored_sentence import ScoredSentence
 
-STOP_WORDS = set([' ', 'a', 'about', 'an', 'and', 'are', 'be', 'been', 'can', 'could', 'do', 'done', 'for', 'he', 'here', 'hes', 'i', 'id', 'if', 'im', 'in', 'me', 'my', 'no', 'not', 'on', 'or', 'she', 'shes', 'so', 'talk', 'tell', 'the', 'their', 'them', 'there', 'them', 'they', 'us', 'we', 'were', 'you', 'your', 'youre'])
+nltk.download('stopwords')
+
+STOP_WORDS = set(stopwords.words('english'))
 NON_ALPHA_REGEX = r'[^a-z\s]'
 MULTI_SPACE_REGEX = r'\s{2,}'
 
