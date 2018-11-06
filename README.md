@@ -4,16 +4,16 @@
 
 TBD
 
-## Usage
+## SlackBot Usage
 
 ```python
 import os
 import tanukibot
 
-token = os.environ.get('TANUKIBOT_SLACK_TOKEN')
-target_id = os.environ.get('TANUKIBOT_TARGET_ID')
+token = os.environ.get('TANUKIBOT_TOKEN') # Slack token
+ids = os.environ.get('TANUKIBOT_IDS') # Comma-separated Slack IDs
 
-bot = tanukibot.Bot(token, target_id)
+bot = tanukibot.SlackBot(token, ids.split(','))
 bot.connect()
 ```
 

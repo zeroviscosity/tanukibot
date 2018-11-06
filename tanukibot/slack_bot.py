@@ -1,24 +1,27 @@
+from pathlib import Path
 import random
 import re
 import time
 from slackclient import SlackClient
 from .core import Core
 
-MENTION_REGEX = '^<@(|[WU].+?)>(.*)'
+MENTION_REGEX = '^<@(|[WU].+?)> <@(|[WU].+?)>(.*)'
 
-class Bot(Core):
-    def __init__(self, token, target_id, rtm_read_delay=1, stock_phrases=[], posting_channels=[], *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.token = token
-        self.target_id = target_id
+class SlackBot:
+    def __init__(self, token, ids, rtm_read_delay=1, *args, **kwargs):
+        self.ids = ids
         self.rtm_read_delay = rtm_read_delay
-        self.stock_phrases = stock_phrases
-        self.posting_channels = posting_channels
-        self.bot_id = None
-        self.new_sentences = 0
 
-        self.slack_client = SlackClient(self.token)
+        self.models = {}
+        for id in self.ids:
+            filename = id + '.txt'
+            if not Path(filename).is_file():
+                with open(filename, 'a') as f:
+                    f.write('lol\n')
+            self.models[id] = Core(filename, *args, **kwargs)
+
+        self.bot_id = None
+        self.slack_client = SlackClient(token)
 
     def connect(self):
         if self.slack_client.rtm_connect(with_team_state=False):
@@ -36,37 +39,25 @@ class Bot(Core):
             # print('EVENT', event)
             if event['type'] != 'message' or 'subtype' in event:
                 continue
-            user_id, message = self.parse_direct_mention(event['text'])
+            user_id, target_id, message = self.parse_direct_mention(event['text'])
             channel = event['channel']
+            author_id = event['user']
             if user_id == self.bot_id:
                 print('Processing:', event)
-                sentence = self.get_sentence(message)
+                sentence = self.models[target_id].get_sentence(message)
                 self.post_message(sentence, channel)
-                return
-            
-            if event['user'] == self.target_id:
+            elif author_id in self.ids:
                 print('Saving:', event)
-                with open(self.corpus, 'a') as f:
+                with open(author_id + '.txt', 'a') as f:
                     text = event['text'] + '\n'
                     f.write(text)
-                self.new_sentences += 1
-                if self.new_sentences % 5 == 0:
-                    self.generate_sentences()
-
-            # Randomly post a stock phrase in one of the approved channels
-            rand = random.randrange(100)
-            if channel in self.posting_channels and rand < len(self.stock_phrases):
-                stock_phrase = self.stock_phrases[rand]
-                self.post_message(stock_phrase, channel)
+                    self.models[author_id].generate_sentences()
 
     def parse_direct_mention(self, message):
         matches = re.search(MENTION_REGEX, message)
-        return (matches.group(1), matches.group(2).strip()) if matches else (None, None)
+        return (matches.group(1), matches.group(2), matches.group(3).strip()) if matches else (None, None, None)
 
     def post_message(self, message, channel):
-        """
-        Posts a message in a channel.
-        """
         self.slack_client.api_call(
             'chat.postMessage',
             channel=channel,
