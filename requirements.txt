@@ -16,6 +16,6 @@ six==1.11.0
 slackclient==1.2.1
 twilio==6.19.2
 Unidecode==1.0.22
-urllib3==1.23
+urllib3==1.26.5
 websocket-client==0.48.0
 Werkzeug==0.14.1
